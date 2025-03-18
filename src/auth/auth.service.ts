@@ -14,13 +14,18 @@ export class AuthService {
   ) {}
   async create(signUpInput: SignUpInput) {
     const hashedPassword = await argon.hash(signUpInput.password);
-    const user = this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         username: signUpInput.username,
         hashedPassword: hashedPassword,
         email: signUpInput.email,
       },
     });
+    const { accessToken, refreshToken } = await this.createTokens(
+      user.id,
+      user.email,
+    );
+    return { accessToken, refreshToken, user };
   }
 
   findAll() {
