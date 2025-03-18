@@ -1,0 +1,42 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Auth {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+type User {
+  id: Int!
+  username: String!
+  email: String!
+}
+
+type SignRespone {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+type Query {
+  auth(id: Int!): Auth!
+}
+
+type Mutation {
+  signUp(signUpInput: SignUpInput!): SignRespone!
+  updateAuth(updateAuthInput: UpdateAuthInput!): Auth!
+  removeAuth(id: Int!): Auth!
+}
+
+input SignUpInput {
+  username: String!
+  email: String!
+  password: String!
+}
+
+input UpdateAuthInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
+}
