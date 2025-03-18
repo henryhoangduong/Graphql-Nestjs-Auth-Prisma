@@ -8,9 +8,11 @@ import { join } from 'path';
 import { PrismaService } from './prisma/prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-
+import { ConfigModule } from '@nestjs/config';
+import { AuthService } from './auth/auth.service';
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: false,
@@ -22,6 +24,6 @@ import { UserModule } from './user/user.module';
   ],
   controllers: [AppController],
 
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, AuthService],
 })
 export class AppModule {}
