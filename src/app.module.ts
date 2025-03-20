@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth/auth.service';
+import { AccessTokenGuard } from './auth/guards/accessToken.guard';
+import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -24,6 +26,11 @@ import { AuthService } from './auth/auth.service';
   ],
   controllers: [AppController],
 
-  providers: [AppService, PrismaService, AuthService],
+  providers: [
+    AppService,
+    PrismaService,
+    AuthService,
+    { provide: APP_GUARD, useValue: AccessTokenGuard },
+  ],
 })
 export class AppModule {}

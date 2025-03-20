@@ -4,7 +4,7 @@ import { Auth } from './entities/auth.entity';
 import { UpdateAuthInput } from './dto/update-auth.input';
 import { SignUpInput } from './dto/signup-input';
 import { SignRespone } from './dto/sign-response';
-
+import { Public } from './decorators/auth.decorator';
 @Resolver(() => Auth)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
@@ -32,5 +32,10 @@ export class AuthResolver {
   @Mutation(() => Auth)
   removeAuth(@Args('id', { type: () => Int }) id: number) {
     return this.authService.remove(id);
+  }
+  @Public()
+  @Query(() => String)
+  hello() {
+    return 'Hello World';
   }
 }
