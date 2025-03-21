@@ -16,7 +16,7 @@ datasource db {
 model User {
   id        Int      @id @default(autoincrement())
   username  String
-  email     String
+  email     String @unique
   hashedPassword String
   hashedRefreshtoken String?
   createdAt DateTime @default(now())

@@ -5,15 +5,24 @@ import { UpdateAuthInput } from './dto/update-auth.input';
 import { SignUpInput } from './dto/signup-input';
 import { SignRespone } from './dto/sign-response';
 import { Public } from './decorators/auth.decorator';
+import { NewTokenResponse } from './dto/newTokenResponse';
+import { CurrentUserId } from './decorators/currentUserId.decorator';
+import { CurrentUser } from './decorators/currentUser.decorator';
+import { UseGuards } from '@nestjs/common';
+import { RefreshTokenGuard } from './guards/refreshToken.guard';
+import { SignInInput } from './dto/signin-input';
 @Resolver(() => Auth)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => SignRespone)
   signUp(@Args('signUpInput') signUpInput: SignUpInput) {
-    return this.authService.create(signUpInput);
+    return this.authService.signUp(signUpInput);
   }
-
+  @Mutation(() => [Auth], { name: 'Auth' })
+  signIn(@Args('signInInput') signInInput: SignInInput) {
+    return this.authService.signIn(signInInput);
+  }
   @Query(() => [Auth], { name: 'auth' })
   findAll() {
     return this.authService.findAll();
@@ -37,5 +46,14 @@ export class AuthResolver {
   @Query(() => String)
   hello() {
     return 'Hello World';
+  }
+  @Public()
+  @UseGuards(RefreshTokenGuard)
+  @Mutation(() => NewTokenResponse)
+  getNewTokens(
+    @CurrentUserId() userId: number,
+    @CurrentUser('refreshToken') refreshToken: string,
+  ) {
+    return this.authService.getNewTokens(userId, refreshToken);
   }
 }

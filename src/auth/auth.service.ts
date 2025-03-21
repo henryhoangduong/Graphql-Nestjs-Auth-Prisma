@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { UpdateAuthInput } from './dto/update-auth.input';
 import { SignUpInput } from './dto/signup-input';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as argon from 'argon2';
+import { SignInInput } from './dto/signin-input';
 @Injectable()
 export class AuthService {
   constructor(
@@ -12,7 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
-  async create(signUpInput: SignUpInput) {
+  async signUp(signUpInput: SignUpInput) {
     const hashedPassword = await argon.hash(signUpInput.password);
     const user = await this.prisma.user.create({
       data: {
@@ -25,6 +26,31 @@ export class AuthService {
       user.id,
       user.email,
     );
+    await this.updateRefreshToken(user.id, refreshToken);
+    return { accessToken, refreshToken, user };
+  }
+  async signIn(signInInput: SignInInput) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: signInInput.email,
+      },
+    });
+    if (!user) {
+      throw new ForbiddenException('Access denied');
+    }
+    const dbMatchPassword = argon.verify(
+      user.hashedPassword,
+      signInInput.password,
+    );
+    if (!dbMatchPassword) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const { accessToken, refreshToken } = await this.createTokens(
+      user.id,
+      user.email,
+    );
+    await this.updateRefreshToken(user.id, refreshToken);
     return { accessToken, refreshToken, user };
   }
 
@@ -74,5 +100,33 @@ export class AuthService {
       where: { id: userId },
       data: { hashedRefreshtoken: hashedRefreshToken },
     });
+  }
+  async logout(userId: number) {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRefreshtoken: { not: null },
+      },
+      data: { hashedRefreshtoken: null },
+    });
+    return { loggedOut: true };
+  }
+  async getNewTokens(userId: number, rt: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new ForbiddenException('Access denied');
+    }
+    const doRefreshTokenMatch = await argon.verify(user.hashedRefreshtoken, rt);
+    if (!doRefreshTokenMatch) {
+      throw new ForbiddenException('Access denied');
+    }
+    const { accessToken, refreshToken } = await this.createTokens(
+      user.id,
+      user.email,
+    );
+    await this.updateRefreshToken(user.id, refreshToken);
+    return { accessToken, refreshToken, user };
   }
 }
