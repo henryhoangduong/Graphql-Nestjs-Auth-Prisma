@@ -53,7 +53,18 @@ export class AuthService {
     await this.updateRefreshToken(user.id, refreshToken);
     return { accessToken, refreshToken, user };
   }
-
+  async logOut(userId: number) {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRefreshtoken: { not: null },
+      },
+      data: {
+        hashedRefreshtoken: null,
+      },
+    });
+    return { loggedOut: true };
+  }
   findAll() {
     return `This action returns all auth`;
   }

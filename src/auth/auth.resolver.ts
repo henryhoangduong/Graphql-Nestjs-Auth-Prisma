@@ -11,6 +11,7 @@ import { CurrentUser } from './decorators/currentUser.decorator';
 import { UseGuards } from '@nestjs/common';
 import { RefreshTokenGuard } from './guards/refreshToken.guard';
 import { SignInInput } from './dto/signin-input';
+import { LogOutResponse } from './dto/logout-response';
 @Resolver(() => Auth)
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
@@ -22,6 +23,10 @@ export class AuthResolver {
   @Mutation(() => [Auth], { name: 'Auth' })
   signIn(@Args('signInInput') signInInput: SignInInput) {
     return this.authService.signIn(signInInput);
+  }
+  @Mutation(() => LogOutResponse)
+  logOut(@Args('id') userId: number) {
+    return this.authService.logOut(userId);
   }
   @Query(() => [Auth], { name: 'auth' })
   findAll() {
